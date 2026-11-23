@@ -14,12 +14,11 @@ TEAM_MEMBERS = [
 ]
 
 SYSTEM_INSTRUCTION = (
-    "You are CyberShield AI, a sharp, friendly, and practical cybersecurity peer "
+    "You are CyberShield AI, a clear, friendly, and practical cybersecurity assistant "
     "created by Mehran, Ansh Raj Verma, Anshuman Tiwari, and Piyush Parmar. "
-    "Always reply naturally in Hinglish (natural mix of Hindi and English written in Roman/Latin script) "
-    "or friendly Indian English. Keep answers clear, direct, and helpful. "
-    "When a user reports any incident, hack, or fraud, always provide numbered action steps (1, 2, 3...) "
-    "and include Indian helplines/portals like 1930, cybercrime.gov.in, or ceir.gov.in when relevant."
+    "Always reply in natural, clear English. "
+    "When a user reports any incident, hack, or fraud, always provide numbered immediate action steps (1, 2, 3...) "
+    "and include relevant Indian helplines and portals such as 1930, cybercrime.gov.in, and ceir.gov.in."
 )
 
 
@@ -29,6 +28,7 @@ def get_groq_api_key() -> str | None:
         return key.strip()
     try:
         import streamlit as st
+
         if "GROQ_API_KEY" in st.secrets:
             val = str(st.secrets["GROQ_API_KEY"]).strip()
             if val and val != "your_groq_api_key_here":
@@ -40,10 +40,10 @@ def get_groq_api_key() -> str | None:
 
 def _pick_model(client: Groq) -> str:
     preferred = [
-        "llama-3.1-8b-instant",
         "llama-3.3-70b-versatile",
-        "gemma2-9b-it",
+        "llama-3.1-8b-instant",
         "qwen/qwen3-32b",
+        "gemma2-9b-it",
     ]
     try:
         models = client.models.list().data or []
@@ -53,7 +53,10 @@ def _pick_model(client: Groq) -> str:
                 return p
         for m_id in ids:
             low = m_id.lower()
-            if not any(skip in low for skip in ["whisper", "guard", "tts", "embed", "audio", "vision", "safeguard"]):
+            if not any(
+                skip in low
+                for skip in ["whisper", "guard", "tts", "embed", "audio", "vision", "safeguard"]
+            ):
                 return m_id
     except Exception:
         pass
@@ -74,8 +77,8 @@ def _call_groq(messages: list[dict], max_tokens: int = 1500, temperature: float 
     api_key = get_groq_api_key()
     if not api_key:
         return (
-            "⚠️ **API Key Missing:** Streamlit Cloud Secrets ya `.env` mein `GROQ_API_KEY` nahi mila. "
-            "Please `GROQ_API_KEY = \"gsk_...\"` add karein."
+            "⚠️ **API Key Missing:** `GROQ_API_KEY` was not found in `.env` or Streamlit Cloud Secrets. "
+            'Add `GROQ_API_KEY = "gsk_..."` and restart the app.'
         )
 
     safe_messages = _clean_messages(messages)
@@ -96,16 +99,43 @@ def _call_groq(messages: list[dict], max_tokens: int = 1500, temperature: float 
 def detect_intent(user_text: str) -> str:
     text = (user_text or "").strip().lower()
 
-    if any(k in text for k in ["team", "member", "members", "who made", "created by", "who amde", "bnaya", "banaya", "developer"]):
+    if any(
+        k in text
+        for k in [
+            "team",
+            "member",
+            "members",
+            "who made",
+            "created by",
+            "who amde",
+            "developer",
+        ]
+    ):
         return "team"
 
-    if any(k in text for k in ["how you can help", "what can you do", "features", "madad", "help karo"]):
+    if any(k in text for k in ["how you can help", "what can you do", "features", "help"]):
         return "help"
 
     sos_triggers = [
-        "hacked", "hack", "scam", "fraud", "blackmail", "sextortion", "threat", "leak",
-        "sim swap", "stolen phone", "lost phone", "identity theft", "aadhaar", "ransomware",
-        "paise kat", "unauthorized transaction", "compromised", "virus", "malware", "sos"
+        "hacked",
+        "hack",
+        "scam",
+        "fraud",
+        "blackmail",
+        "sextortion",
+        "threat",
+        "leak",
+        "sim swap",
+        "stolen phone",
+        "lost phone",
+        "identity theft",
+        "aadhaar",
+        "ransomware",
+        "unauthorized transaction",
+        "compromised",
+        "virus",
+        "malware",
+        "sos",
     ]
     if any(k in text for k in sos_triggers):
         return "sos"
@@ -113,10 +143,12 @@ def detect_intent(user_text: str) -> str:
     if "http://" in text or "https://" in text or "www." in text or "scan url" in text:
         return "url"
 
-    if "password" in text and any(k in text for k in ["check", "strength", "strong", "weak", "score", "test"]):
+    if "password" in text and any(
+        k in text for k in ["check", "strength", "strong", "weak", "score", "test"]
+    ):
         return "password"
 
-    if any(k in text for k in ["sms", "message", "whatsapp msg", "kyc msg", "lottery", "suspicious msg"]):
+    if any(k in text for k in ["sms", "message", "whatsapp", "kyc", "lottery", "suspicious msg"]):
         return "message"
 
     return "chat"
@@ -124,12 +156,12 @@ def detect_intent(user_text: str) -> str:
 
 def generate_incident_steps(incident_text: str) -> str:
     prompt = f"""
-    User ne yeh cyber incident ya attack report kiya hai: "{incident_text}".
-    Hinglish mein natural, calm aur clear reply do:
-    1. Ek line ka reassuring context.
+    A user reported this cybersecurity incident or emergency: "{incident_text}".
+    Respond in clear, calm, and practical English:
+    1. One reassuring opening line.
     2. Numbered immediate action steps (1, 2, 3...).
-    3. India reporting helpline & portal (1930 / cybercrime.gov.in / ceir.gov.in) agar applicable ho.
-    4. Ek short prevention tip future ke liye.
+    3. Official Indian reporting channels and helplines (1930, cybercrime.gov.in, ceir.gov.in) when applicable.
+    4. One short prevention tip for the future.
     """
     return _call_groq(
         messages=[
@@ -150,4 +182,4 @@ def ask_gemini(history: list[dict], new_message: str) -> str:
             messages.append({"role": role, "content": content})
     messages.append({"role": "user", "content": new_message})
 
-    return _call_groq(messages=messages, max_tokens=1500, temperature=0.6)
+    return _call_groq(messages=messages, max_tokens=1500, temperature=0.55)
