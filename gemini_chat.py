@@ -7,13 +7,6 @@ from groq import Groq
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
-PREFERRED_MODELS = [
-    "llama-3.1-8b-instant",
-    "llama-3.3-70b-versatile",
-    "llama3-8b-8192",
-    "llama3-70b-8192",
-]
-
 TEAM_MEMBERS = [
     "Mehran",
     "Ansh Raj Verma",
@@ -54,6 +47,34 @@ def get_client() -> Groq | None:
     return Groq(api_key=api_key)
 
 
+def _get_live_chat_models(client: Groq) -> list[str]:
+    preferred = [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "mixtral-8x7b-32768",
+        "gemma2-9b-it",
+    ]
+    try:
+        remote_models = client.models.list().data or []
+        available_ids = [m.id for m in remote_models if getattr(m, "id", None)]
+        filtered = []
+        for p in preferred:
+            if p in available_ids:
+                filtered.append(p)
+        for m_id in available_ids:
+            low = m_id.lower()
+            if any(skip in low for skip in ["whisper", "guard", "vision", "embed", "audio", "tts", "safeguard"]):
+                continue
+            if any(k in low for k in ["llama", "mixtral", "gemma", "qwen"]):
+                if m_id not in filtered:
+                    filtered.append(m_id)
+        if filtered:
+            return filtered
+    except Exception:
+        pass
+    return preferred
+
+
 def _clean_messages(messages: list[dict]) -> list[dict]:
     cleaned = []
     for m in messages:
@@ -64,13 +85,24 @@ def _clean_messages(messages: list[dict]) -> list[dict]:
     return cleaned
 
 
-def _run_llm(messages: list[dict], max_tokens: int = 1500, temperature: float = 0.5) -> str | None:
-    client = get_client()
-    if client is None:
-        return None
+def _run_llm(messages: list[dict], max_tokens: int = 2048, temperature: float = 0.5) -> str:
+    api_key = get_groq_api_key()
+    if not api_key:
+        return (
+            "**Configuration Notice:** `GROQ_API_KEY` was not found. "
+            "Please add `GROQ_API_KEY = \"gsk_...\"` in your `.env` file or in Streamlit Cloud Secrets under App Settings."
+        )
+
+    try:
+        client = Groq(api_key=api_key)
+    except Exception as e:
+        return f"**Client Init Error:** Failed to initialize Groq client: {e}"
 
     safe_messages = _clean_messages(messages)
-    for model_name in PREFERRED_MODELS:
+    models_to_try = _get_live_chat_models(client)
+
+    errors = []
+    for model_name in models_to_try:
         try:
             res = client.chat.completions.create(
                 model=model_name,
@@ -81,9 +113,12 @@ def _run_llm(messages: list[dict], max_tokens: int = 1500, temperature: float = 
             text = (res.choices[0].message.content or "").strip()
             if text:
                 return text
-        except Exception:
+        except Exception as e:
+            errors.append(f"[{model_name}]: {e}")
             continue
-    return None
+
+    err_summary = " | ".join(errors[:2]) if errors else "No active model responded."
+    return f"**Groq API Error:** All candidate models failed to respond. Details: {err_summary}"
 
 
 def wants_hindi(user_text: str) -> bool:
@@ -147,22 +182,13 @@ def generate_incident_steps(incident_text: str, hindi: bool = False) -> str:
     4. One short tip to prevent this in the future.
     """
 
-    llm_reply = _run_llm(
+    return _run_llm(
         messages=[
             {"role": "system", "content": SYSTEM_INSTRUCTION},
             {"role": "user", "content": prompt},
         ],
-        max_tokens=1500,
+        max_tokens=2048,
         temperature=0.35,
-    )
-    if llm_reply:
-        return llm_reply
-
-    return (
-        "**Emergency Action Steps:**\n"
-        "**1. Secure Accounts:** Change passwords immediately and enable 2FA.\n"
-        "**2. Block / Freeze:** If money or phone is involved, block cards/UPI/SIM right away.\n"
-        "**3. Report in India:** Call **1930** or visit **cybercrime.gov.in** (and **ceir.gov.in** for lost/stolen phones)."
     )
 
 
@@ -175,11 +201,4 @@ def ask_gemini(history: list[dict], new_message: str) -> str:
             messages.append({"role": role, "content": content})
     messages.append({"role": "user", "content": new_message})
 
-    llm_reply = _run_llm(messages=messages, max_tokens=1500, temperature=0.55)
-    if llm_reply:
-        return llm_reply
-
-    return (
-        "**CyberShield AI:** Live AI response is temporarily unavailable right now. "
-        "You can still use **URL Scanner**, **Password Check**, **Message Check**, or call **1930** / visit **cybercrime.gov.in** for cyber help in India."
-    )
+    return _run_llm(messages=messages, max_tokens=2048, temperature=0.55)
