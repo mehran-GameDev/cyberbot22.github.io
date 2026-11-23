@@ -5,7 +5,6 @@ from gemini_chat import (
     ask_gemini,
     detect_intent,
     generate_incident_steps,
-    wants_hindi,
 )
 
 st.set_page_config(
@@ -36,19 +35,19 @@ st.markdown(
     }
 
     .block-container {
-        padding-top: 1.6rem;
-        padding-bottom: 3rem;
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
+        padding-top: 1.5rem;
+        padding-bottom: 3.5rem;
+        padding-left: 1.2rem;
+        padding-right: 1.2rem;
         max-width: 1120px;
     }
 
     .cyber-hero {
         background: linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(15, 23, 42, 0.78) 100%);
         border: 1px solid rgba(0, 210, 255, 0.28);
-        border-radius: 18px;
-        padding: 22px 26px;
-        margin-bottom: 20px;
+        border-radius: 16px;
+        padding: 20px 24px;
+        margin-bottom: 18px;
         box-shadow: 0 10px 30px -10px rgba(0, 210, 255, 0.18);
         position: relative;
         overflow: hidden;
@@ -61,31 +60,29 @@ st.markdown(
         box-shadow: 0 0 12px #00d2ff;
     }
     .hero-title {
-        font-size: 30px;
+        font-size: 26px;
         font-weight: 800;
-        letter-spacing: -0.4px;
         color: #ffffff;
-        margin: 0 0 6px 0;
+        margin: 0 0 4px 0;
         line-height: 1.2;
     }
     .hero-sub {
-        font-size: 15.5px;
-        font-weight: 700;
+        font-size: 14.5px;
+        font-weight: 600;
         color: #7dd3fc;
         margin: 0;
-        line-height: 1.45;
     }
 
     .cyber-card {
         background: rgba(15, 23, 42, 0.88);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-left: 4px solid #38bdf8;
-        border-radius: 14px;
-        padding: 18px 22px;
+        border-radius: 12px;
+        padding: 16px 20px;
         margin: 12px 0;
-        font-size: 16.5px;
+        font-size: 16px;
         font-weight: 600;
-        line-height: 1.65;
+        line-height: 1.6;
         color: #f8fafc;
         overflow-wrap: anywhere;
     }
@@ -93,26 +90,23 @@ st.markdown(
     .thinking-box {
         display: inline-flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         background: rgba(14, 165, 233, 0.14);
         border: 1px solid rgba(56, 189, 248, 0.4);
-        border-radius: 14px;
-        padding: 11px 16px;
+        border-radius: 12px;
+        padding: 10px 15px;
         margin: 8px 0 14px 0;
         color: #e0f2fe;
-        font-weight: 800;
-        font-size: 15px;
-        max-width: 100%;
+        font-weight: 700;
+        font-size: 14.5px;
     }
     .thinking-dots {
         display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        flex-shrink: 0;
+        gap: 4px;
     }
     .thinking-dots span {
-        width: 8px;
-        height: 8px;
+        width: 7px;
+        height: 7px;
         border-radius: 50%;
         background: #38bdf8;
         box-shadow: 0 0 8px #38bdf8;
@@ -127,51 +121,31 @@ st.markdown(
 
     .risk-pill {
         display: inline-block;
-        padding: 4px 12px;
+        padding: 3px 10px;
         border-radius: 6px;
         font-weight: 800;
-        font-size: 14px;
-        letter-spacing: 0.4px;
+        font-size: 13.5px;
         text-transform: uppercase;
     }
-    .risk-high {
-        background: rgba(239, 68, 68, 0.2);
-        color: #f87171;
-        border: 1px solid rgba(239, 68, 68, 0.45);
-    }
-    .risk-mod {
-        background: rgba(234, 179, 8, 0.2);
-        color: #facc15;
-        border: 1px solid rgba(234, 179, 8, 0.45);
-    }
-    .risk-low {
-        background: rgba(34, 197, 94, 0.2);
-        color: #4ade80;
-        border: 1px solid rgba(34, 197, 94, 0.45);
-    }
+    .risk-high { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .risk-mod { background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); }
+    .risk-low { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
 
     [data-testid="stSidebar"] {
         background-color: #070c18 !important;
         border-right: 1px solid rgba(255, 255, 255, 0.08);
     }
-    [data-testid="stSidebar"] label,
-    [data-testid="stSidebar"] p,
-    [data-testid="stSidebar"] span {
-        font-weight: 700 !important;
-    }
-
     .sidebar-helpline-card {
         background: rgba(15, 23, 42, 0.92);
         border: 1px solid rgba(244, 63, 94, 0.35);
-        border-radius: 12px;
-        padding: 14px 16px;
+        border-radius: 10px;
+        padding: 12px 14px;
         margin-top: 14px;
-        font-weight: 700;
     }
     .sidebar-helpline-card h4 {
-        margin: 0 0 8px 0;
+        margin: 0 0 6px 0;
         color: #fb7185;
-        font-size: 13.5px;
+        font-size: 13px;
         font-weight: 800;
         text-transform: uppercase;
     }
@@ -179,79 +153,43 @@ st.markdown(
     [data-testid="stChatMessage"] {
         background: rgba(15, 23, 42, 0.72);
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 14px;
+        border-radius: 12px;
         padding: 12px 16px;
         margin-bottom: 10px;
     }
     [data-testid="stChatMessageContent"] p,
     [data-testid="stChatMessageContent"] li {
-        font-size: 16px !important;
-        font-weight: 700 !important;
-        line-height: 1.65 !important;
+        font-size: 15.5px !important;
+        font-weight: 600 !important;
+        line-height: 1.6 !important;
         color: #f8fafc !important;
-        overflow-wrap: anywhere;
     }
 
-    .stTextInput>div>div>input,
-    .stTextArea>div>div>textarea {
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
         background-color: #0d1527 !important;
         color: #ffffff !important;
-        font-weight: 700 !important;
+        font-weight: 600 !important;
         border: 1px solid rgba(56, 189, 248, 0.3) !important;
-        border-radius: 10px !important;
-        font-size: 16px !important;
-        padding: 11px 14px !important;
+        border-radius: 8px !important;
     }
     .stButton>button {
         background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
         color: #ffffff !important;
-        font-weight: 800 !important;
-        border: 1px solid rgba(255, 255, 255, 0.18) !important;
-        border-radius: 10px !important;
-        padding: 10px 20px !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
         min-height: 44px;
     }
 
-    /* Mobile Optimization */
     @media (max-width: 768px) {
         .block-container {
             padding-top: 1rem;
             padding-bottom: 5.5rem;
-            padding-left: 0.85rem;
-            padding-right: 0.85rem;
+            padding-left: 0.8rem;
+            padding-right: 0.8rem;
         }
-        .cyber-hero {
-            padding: 16px 18px;
-            border-radius: 14px;
-            margin-bottom: 14px;
-        }
-        .hero-title {
-            font-size: 22px;
-        }
-        .hero-sub {
-            font-size: 13px;
-        }
-        .cyber-card {
-            padding: 14px 15px;
-            font-size: 15px;
-            border-radius: 12px;
-        }
-        [data-testid="stChatMessage"] {
-            padding: 10px 12px;
-            border-radius: 12px;
-        }
-        [data-testid="stChatMessageContent"] p,
-        [data-testid="stChatMessageContent"] li {
-            font-size: 15px !important;
-            line-height: 1.55 !important;
-        }
-        .stButton>button {
-            width: 100% !important;
-        }
-        .thinking-box {
-            font-size: 13.5px;
-            padding: 10px 12px;
-        }
+        .hero-title { font-size: 20px; }
+        .hero-sub { font-size: 13px; }
+        .stButton>button { width: 100% !important; }
     }
     </style>
     """,
@@ -259,7 +197,7 @@ st.markdown(
 )
 
 
-def show_thinking(placeholder, label: str = "CyberShield AI is analyzing"):
+def show_thinking(placeholder, label: str = "CyberShield AI analyzing"):
     placeholder.markdown(
         f"""
         <div class="thinking-box">
@@ -282,30 +220,19 @@ def get_risk_pill(level: str) -> str:
     return f"<span class='risk-pill risk-low'><b>{level}</b></span>"
 
 
-def format_team_reply(hindi: bool = False) -> str:
+def format_team_reply() -> str:
     lines = "\n".join(f"**{i}. {name}**" for i, name in enumerate(TEAM_MEMBERS, 1))
-    if hindi:
-        return f"**CyberShield AI Team Members:**\n{lines}"
-    return f"**Meet the CyberShield AI Team:**\n{lines}"
+    return f"**CyberShield AI Team Members:**\n{lines}"
 
 
-def format_capabilities_reply(hindi: bool = False) -> str:
-    if hindi:
-        return (
-            "**Main CyberShield AI hoon — aapka friendly cyber security companion! Features:**\n"
-            "**1. Smart AI Chat:** Har cybersecurity aur privacy sawal ka live jawab.\n"
-            "**2. AI Emergency SOS Engine:** Kisi bhi hack, fraud, ya threat par direct step-by-step guidance.\n"
-            "**3. Phishing URL Scanner:** Links ko check karke unke risk flags dekhna.\n"
-            "**4. Password Strength Checker:** Password score aur real-time upgrade tips.\n"
-            "**5. Suspicious Message Analyzer:** Fraud SMS/WhatsApp alerts ki pehchan."
-        )
+def format_help_reply() -> str:
     return (
-        "**Hey! I am CyberShield AI — your friendly cybersecurity assistant. Here is what I do:**\n"
-        "**1. Live AI Chat:** Ask any question regarding cyber safety, privacy, or attack vectors.\n"
-        "**2. AI SOS Emergency Engine:** Instant, tailored step-by-step action plans for hacks and scams.\n"
-        "**3. Phishing URL Scanner:** Test websites for spoofing, malicious TLDs, and raw IPs.\n"
-        "**4. Password Strength Checker:** Check password resiliency with instant recommendations.\n"
-        "**5. Suspicious Message Analyzer:** Detect urgency tricks, scam hooks, and high-risk requests."
+        "**CyberShield AI Features:**\n"
+        "**1. Smart Hinglish Chat:** Cyber safety, online privacy aur tech queries solve karta hai.\n"
+        "**2. AI SOS Engine:** Kisi bhi online fraud ya hack par direct step-by-step action plan.\n"
+        "**3. URL Scanner:** Phishing aur suspicious links detect karta hai.\n"
+        "**4. Password Strength:** Password resiliency check aur upgrade recommendations.\n"
+        "**5. Message Analyzer:** Fraud WhatsApp / SMS urgency messages check karta hai."
     )
 
 
@@ -316,23 +243,23 @@ if "messages" not in st.session_state:
         {
             "role": "assistant",
             "content": (
-                "**Hey there! I am CyberShield AI — your cybersecurity buddy.** "
-                "**Ask me anything, check a URL, password, or suspicious message, or describe an incident for step-by-step AI SOS guidance.**"
+                "**Hey! Main CyberShield AI hoon — aapka cybersecurity peer.** "
+                "Mujhse koi bhi doubt pucho, link check karvao, password test karo ya kisi hack/fraud par instant SOS help lo!"
             ),
         }
     ]
 
 with st.sidebar:
     st.markdown("## **🛡️ CyberShield AI**")
-    st.markdown("**Real-Time Threat Intelligence & Assistance**")
+    st.markdown("**Real-Time Threat Assistant**")
     st.session_state.mode = st.radio(
-        "**Select Mode**",
+        "**Mode Select Karein**",
         ["Auto Chat", "SOS Incident Guide", "URL Scanner", "Password Check", "Message Check", "Team Info"],
     )
     st.markdown(
         """
         <div class="sidebar-helpline-card">
-            <h4><b>🚨 Emergency Helplines (India)</b></h4>
+            <h4>🚨 Emergency Helplines (India)</h4>
             <div><b>Cyber Helpline: 1930</b></div>
             <div><b>Portal: cybercrime.gov.in</b></div>
             <div><b>Lost Phone: ceir.gov.in</b></div>
@@ -344,17 +271,17 @@ with st.sidebar:
 st.markdown(
     """
     <div class="cyber-hero">
-        <div class="hero-title"><b>🛡️ CyberShield AI Assistant</b></div>
-        <p class="hero-sub"><b>Live AI Incident Response • URL Inspector • Password Audit • Message Analysis</b></p>
+        <div class="hero-title">🛡️ CyberShield AI Assistant</div>
+        <p class="hero-sub">Live AI Incident Recovery • URL Inspector • Password Audit • Message Analysis</p>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-# Mobile-friendly quick mode selector right below hero on smaller screens
+# Mobile quick switch
 mode_options = ["Auto Chat", "SOS Incident Guide", "URL Scanner", "Password Check", "Message Check", "Team Info"]
 quick_mode = st.selectbox(
-    "**Quick Mode Switch (Mobile & PC)**",
+    "Quick Switch",
     mode_options,
     index=mode_options.index(st.session_state.mode),
     label_visibility="collapsed",
@@ -363,12 +290,10 @@ if quick_mode != st.session_state.mode:
     st.session_state.mode = quick_mode
     st.rerun()
 
-# ----------------- SOS INCIDENT GUIDE (CONNECTED TO AI) -----------------
+# ----------------- SOS INCIDENT GUIDE -----------------
 if st.session_state.mode == "SOS Incident Guide":
-    st.markdown("### **🚨 AI Emergency Incident Response Guide**")
-    st.markdown(
-        "**Select a common attack vector or describe what occurred. CyberShield AI will construct an immediate, numbered recovery plan.**"
-    )
+    st.markdown("### **🚨 AI Emergency Incident Guide**")
+    st.markdown("Incident select karein ya apna case likhein, CyberShield AI instant recovery steps batayega.")
 
     incident_library = [
         "UPI / Bank Fraud (Money Debited via Unauthorized Transaction)",
@@ -376,9 +301,9 @@ if st.session_state.mode == "SOS Incident Guide":
         "WhatsApp Account Hijacked / Fake OTP Verification Scam",
         "WhatsApp Video Call Blackmail / Sextortion Extortion",
         "Fake Job / Part-Time Telegram Task & Investment Fraud",
-        "Lost or Stolen Mobile Phone (Risk of SIM Abuse & UPI Misuse)",
+        "Lost or Stolen Mobile Phone (Risk of SIM & UPI Misuse)",
         "Identity Theft / Aadhaar or PAN Card Exploitation",
-        "Suspicious APK / Spyware / Unknown App Installed on Phone",
+        "Suspicious APK / Spyware / Unknown App Installed",
         "Ransomware Attack / PC Files Locked & Encrypted",
         "Clicked a Phishing Link & Entered Account Credentials",
         "Debit / Credit Card Cloning or Unauthorized ATM Withdrawal",
@@ -392,32 +317,29 @@ if st.session_state.mode == "SOS Incident Guide":
         "Other Custom Emergency / Attack Scenario...",
     ]
 
-    selected_incident = st.selectbox("**Choose an incident scenario:**", incident_library)
+    selected_incident = st.selectbox("**Select incident type:**", incident_library)
 
-    custom_input = ""
     if selected_incident == "Other Custom Emergency / Attack Scenario...":
         custom_input = st.text_area(
-            "**Describe exactly what happened (e.g. details of the call, app name, loss incurred):**",
-            placeholder="I received a call claiming to be FedEx police and they asked me to share my screen...",
+            "**Apna incident detail mein likhein:**",
+            placeholder="Mere sath yeh hua, call aayi thi...",
         )
         target_incident = custom_input.strip()
     else:
         target_incident = selected_incident
 
-    lang_preference = st.checkbox("**Respond in Hindi / Hinglish**", value=False)
-
     if st.button("**Generate AI Emergency Action Plan**", type="primary"):
         if target_incident:
             anim_box = st.empty()
-            show_thinking(anim_box, "CyberShield AI is analyzing the incident and synthesizing emergency steps")
-            ai_response = generate_incident_steps(target_incident, hindi=lang_preference)
+            show_thinking(anim_box, "Emergency steps prepare ho rahe hain")
+            ai_response = generate_incident_steps(target_incident)
             anim_box.empty()
             st.markdown(
                 f"<div class='cyber-card'>{ai_response.replace(chr(10), '<br>')}</div>",
                 unsafe_allow_html=True,
             )
         else:
-            st.warning("Please provide details of your situation before requesting an action plan.")
+            st.warning("Pehle details provide karein.")
 
 # ----------------- URL SCANNER -----------------
 elif st.session_state.mode == "URL Scanner":
@@ -425,7 +347,7 @@ elif st.session_state.mode == "URL Scanner":
     if st.button("**Scan URL**") and url_in:
         res = scan_url(url_in)
         pill = get_risk_pill(res["risk"])
-        details = "<br>".join(f"<b>• {f}</b>" for f in res["flags"]) or "<b>• No obvious suspicious patterns found.</b>"
+        details = "<br>".join(f"<b>• {f}</b>" for f in res["flags"]) or "<b>• No suspicious patterns found.</b>"
         st.markdown(
             f"<div class='cyber-card'><b>Risk Level:</b> {pill}<br><br>{details}</div>",
             unsafe_allow_html=True,
@@ -460,7 +382,7 @@ elif st.session_state.mode == "Message Check":
 # ----------------- TEAM INFO -----------------
 elif st.session_state.mode == "Team Info":
     st.markdown(
-        f"<div class='cyber-card'><b>{format_team_reply(False).replace(chr(10), '<br>')}</b></div>",
+        f"<div class='cyber-card'><b>{format_team_reply().replace(chr(10), '<br>')}</b></div>",
         unsafe_allow_html=True,
     )
 
@@ -470,22 +392,20 @@ elif st.session_state.mode == "Auto Chat":
         with st.chat_message(m["role"]):
             st.markdown(f"**{m['content']}**")
 
-    prompt = st.chat_input("Chat freely, paste a link, or describe an incident...")
+    prompt = st.chat_input("Chat karein, link paste karein ya incident batayein...")
     if prompt:
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(f"**{prompt}**")
 
-        hindi_mode = wants_hindi(prompt)
         intent = detect_intent(prompt)
-        lower_p = prompt.strip().lower()
 
         with st.chat_message("assistant"):
             anim_box = st.empty()
             if intent == "team":
-                reply = format_team_reply(hindi=hindi_mode)
-            elif lower_p in {"how you can help me", "how can you help me", "what can you do", "help"}:
-                reply = format_capabilities_reply(hindi=hindi_mode)
+                reply = format_team_reply()
+            elif intent == "help":
+                reply = format_help_reply()
             elif intent == "url":
                 r = scan_url(prompt)
                 reply = f"**URL Risk: {r['risk']}**\n" + (
@@ -497,22 +417,16 @@ elif st.session_state.mode == "Auto Chat":
                     "\n".join(f"**- {s}**" for s in r["signals"]) if r["signals"] else "**- No major scam keywords found.**"
                 )
             elif intent == "password":
-                parts = prompt.strip().split()
-                candidate = parts[-1] if len(parts) > 1 else ""
+                candidate = prompt.strip().split()[-1]
                 r = check_password(candidate)
-                reply = (
-                    f"**Password Strength: {r['level']} ({r['score']}/100)**\n"
-                    + (
-                        "\n".join(f"**- {t}**" for t in r["tips"])
-                        if r["tips"]
-                        else "**- Strong password! You can also test passwords in the Password Check mode.**"
-                    )
+                reply = f"**Password Strength: {r['level']} ({r['score']}/100)**\n" + (
+                    "\n".join(f"**- {t}**" for t in r["tips"]) if r["tips"] else "**- Strong password!**"
                 )
             elif intent == "sos":
-                show_thinking(anim_box, "Synthesizing emergency action plan")
-                reply = generate_incident_steps(prompt, hindi=hindi_mode)
+                show_thinking(anim_box, "Emergency steps prepare ho rahe hain")
+                reply = generate_incident_steps(prompt)
             else:
-                show_thinking(anim_box, "CyberShield AI is thinking")
+                show_thinking(anim_box, "CyberShield AI thinking")
                 reply = ask_gemini(st.session_state.messages[:-1], prompt)
 
             anim_box.empty()
