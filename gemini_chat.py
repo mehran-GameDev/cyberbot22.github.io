@@ -2,12 +2,12 @@ import os
 from pathlib import Path
 import re
 from dotenv import load_dotenv
-from groq import Groq
+from groq import Groq, NotFoundError
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
-LLAMA_MODEL = "llama-3.3-70b-versatile"
+LLAMA_MODEL = "llama-3.1-8b-instant"
 
 TEAM_MEMBERS = [
     "Mehran",
@@ -47,6 +47,43 @@ def get_client() -> Groq:
     if not api_key:
         raise ValueError("GROQ_API_KEY is missing. Add it to .env or Streamlit Secrets.")
     return Groq(api_key=api_key)
+
+
+def _resolve_active_model(client: Groq) -> str:
+    try:
+        models = client.models.list().data or []
+        ids = [m.id for m in models if getattr(m, "id", None)]
+        for preferred in [
+            "llama-3.1-8b-instant",
+            "llama-3.3-70b-versatile",
+            "gemma2-9b-it",
+            "qwen/qwen3-32b",
+        ]:
+            if preferred in ids:
+                return preferred
+        if ids:
+            return ids[0]
+    except Exception:
+        pass
+    return LLAMA_MODEL
+
+
+def _create_completion(client: Groq, messages: list[dict], max_tokens: int, temperature: float):
+    try:
+        return client.chat.completions.create(
+            model=LLAMA_MODEL,
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+    except NotFoundError:
+        active_model = _resolve_active_model(client)
+        return client.chat.completions.create(
+            model=active_model,
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
 
 
 def wants_hindi(user_text: str) -> bool:
@@ -111,8 +148,8 @@ def generate_incident_steps(incident_text: str, hindi: bool = False) -> str:
     4. One short tip to prevent this in the future.
     """
 
-    chat_completion = client.chat.completions.create(
-        model=LLAMA_MODEL,
+    chat_completion = _create_completion(
+        client=client,
         messages=[
             {"role": "system", "content": SYSTEM_INSTRUCTION},
             {"role": "user", "content": prompt},
@@ -135,8 +172,8 @@ def ask_gemini(history: list[dict], new_message: str) -> str:
 
     messages.append({"role": "user", "content": new_message})
 
-    chat_completion = client.chat.completions.create(
-        model=LLAMA_MODEL,
+    chat_completion = _create_completion(
+        client=client,
         messages=messages,
         max_tokens=2048,
         temperature=0.55,
