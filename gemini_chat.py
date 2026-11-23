@@ -4,16 +4,10 @@ import re
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from offline_engine import TEAM_MEMBERS, offline_chat_reply, offline_sos_guide
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
-
-TEAM_MEMBERS = [
-    "Mehran",
-    "Ansh Raj Verma",
-    "Anshuman Tiwari",
-    "Piyush Parmar",
-]
 
 SYSTEM_INSTRUCTION = (
     "You are CyberShield AI, a friendly, reassuring, and smart cybersecurity peer "
@@ -22,7 +16,7 @@ SYSTEM_INSTRUCTION = (
     "if the user explicitly asks to speak in Hindi or speaks in Hindi/Hinglish first. "
     "When a user reports any incident, attack, fraud, or hack, give a complete, clear, "
     "numbered step-by-step emergency action plan without cutting off mid-sentence, "
-    "including official Indian helplines such as 1930 and cybercrime.gov.in where relevant."
+    "including official Indian helplines such as 1930, cybercrime.gov.in, and ceir.gov.in where relevant."
 )
 
 
@@ -44,7 +38,7 @@ def get_api_key() -> str | None:
 def get_client() -> genai.Client:
     api_key = get_api_key()
     if not api_key:
-        raise ValueError("GEMINI_API_KEY is missing. Add it to .env or Streamlit Secrets.")
+        raise ValueError("GEMINI_API_KEY is missing.")
     return genai.Client(
         api_key=api_key,
         http_options=types.HttpOptions(api_version="v1beta"),
@@ -95,53 +89,67 @@ def detect_intent(user_text: str) -> str:
 
 
 def generate_incident_steps(incident_text: str, hindi: bool = False) -> str:
-    """Generates full step-by-step guidance without artificial short token caps."""
-    client = get_client()
-    lang_prompt = (
-        "Respond in clear, natural Hinglish or simple Hindi so it is easy to read and complete."
-        if hindi
-        else "Respond in clear, friendly English."
-    )
+    """Generates AI step-by-step incident response, falling back cleanly to offline SOS guide."""
+    try:
+        client = get_client()
+        lang_prompt = (
+            "Respond in clear, natural Hinglish or simple Hindi so it is easy to read and complete."
+            if hindi
+            else "Respond in clear, friendly English."
+        )
 
-    prompt = f"""
-    A user reported this cybersecurity incident or emergency: "{incident_text}".
-    {lang_prompt}
+        prompt = f"""
+        A user reported this cybersecurity incident or emergency: "{incident_text}".
+        {lang_prompt}
 
-    Provide a complete, clear response:
-    1. One calm, reassuring opening line.
-    2. Numbered immediate action steps (1, 2, 3...) tailored to this exact situation.
-    3. Official support / reporting channels (including 1930 and cybercrime.gov.in in India when applicable).
-    4. One short tip to prevent this in the future.
-    """
+        Provide a complete, clear response:
+        1. One calm, reassuring opening line.
+        2. Numbered immediate action steps (1, 2, 3...) tailored to this exact situation.
+        3. Official support / reporting channels (including 1930, cybercrime.gov.in, and ceir.gov.in in India when applicable).
+        4. One short tip to prevent this in the future.
+        """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_INSTRUCTION,
-            max_output_tokens=8192,
-            temperature=0.35,
-        ),
-    )
-    return (response.text or "Could not generate guidance. Please try again.").strip()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_INSTRUCTION,
+                max_output_tokens=8192,
+                temperature=0.35,
+            ),
+        )
+        text = (response.text or "").strip()
+        if text:
+            return text
+    except Exception:
+        pass
+
+    return offline_sos_guide(incident_text)
 
 
 def ask_gemini(history: list[dict], new_message: str) -> str:
-    """Keeps the full conversation thread going across long chats."""
-    client = get_client()
-    contents = []
-    for msg in history:
-        role = "user" if msg.get("role") == "user" else "model"
-        contents.append(types.Content(role=role, parts=[types.Part.from_text(text=msg.get("content", ""))]))
-    contents.append(types.Content(role="user", parts=[types.Part.from_text(text=new_message)]))
+    """Sends conversation to Gemini and automatically falls back to offline smart replies if needed."""
+    try:
+        client = get_client()
+        contents = []
+        for msg in history:
+            role = "user" if msg.get("role") == "user" else "model"
+            contents.append(types.Content(role=role, parts=[types.Part.from_text(text=msg.get("content", ""))]))
+        contents.append(types.Content(role="user", parts=[types.Part.from_text(text=new_message)]))
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=contents,
-        config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_INSTRUCTION,
-            max_output_tokens=8192,
-            temperature=0.55,
-        ),
-    )
-    return (response.text or "Could not generate a response.").strip()
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_INSTRUCTION,
+                max_output_tokens=8192,
+                temperature=0.55,
+            ),
+        )
+        text = (response.text or "").strip()
+        if text:
+            return text
+    except Exception:
+        pass
+
+    return offline_chat_reply(new_message)
