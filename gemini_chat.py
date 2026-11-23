@@ -45,6 +45,12 @@ def _pick_model(client: Groq) -> str:
         "qwen/qwen3-32b",
         "gemma2-9b-it",
     ]
+    blocked_keywords = [
+        "whisper", "guard", "tts", "embed", "audio",
+        "vision", "safeguard", "orpheus", "playai"
+    ]
+    allowed_families = ["llama", "qwen", "gemma", "deepseek", "mistral"]
+
     try:
         models = client.models.list().data or []
         ids = [m.id for m in models if getattr(m, "id", None)]
@@ -53,10 +59,9 @@ def _pick_model(client: Groq) -> str:
                 return p
         for m_id in ids:
             low = m_id.lower()
-            if not any(
-                skip in low
-                for skip in ["whisper", "guard", "tts", "embed", "audio", "vision", "safeguard"]
-            ):
+            if any(bad in low for bad in blocked_keywords):
+                continue
+            if any(fam in low for fam in allowed_families):
                 return m_id
     except Exception:
         pass
