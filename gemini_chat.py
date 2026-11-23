@@ -2,12 +2,17 @@ import os
 from pathlib import Path
 import re
 from dotenv import load_dotenv
-from groq import Groq, NotFoundError
+from groq import Groq
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
-LLAMA_MODEL = "llama-3.1-8b-instant"
+PREFERRED_MODELS = [
+    "llama-3.1-8b-instant",
+    "llama-3.3-70b-versatile",
+    "llama3-8b-8192",
+    "llama3-70b-8192",
+]
 
 TEAM_MEMBERS = [
     "Mehran",
@@ -42,48 +47,43 @@ def get_groq_api_key() -> str | None:
     return None
 
 
-def get_client() -> Groq:
+def get_client() -> Groq | None:
     api_key = get_groq_api_key()
     if not api_key:
-        raise ValueError("GROQ_API_KEY is missing. Add it to .env or Streamlit Secrets.")
+        return None
     return Groq(api_key=api_key)
 
 
-def _resolve_active_model(client: Groq) -> str:
-    try:
-        models = client.models.list().data or []
-        ids = [m.id for m in models if getattr(m, "id", None)]
-        for preferred in [
-            "llama-3.1-8b-instant",
-            "llama-3.3-70b-versatile",
-            "gemma2-9b-it",
-            "qwen/qwen3-32b",
-        ]:
-            if preferred in ids:
-                return preferred
-        if ids:
-            return ids[0]
-    except Exception:
-        pass
-    return LLAMA_MODEL
+def _clean_messages(messages: list[dict]) -> list[dict]:
+    cleaned = []
+    for m in messages:
+        role = m.get("role")
+        content = (m.get("content") or "").strip()
+        if role in {"system", "user", "assistant"} and content:
+            cleaned.append({"role": role, "content": content})
+    return cleaned
 
 
-def _create_completion(client: Groq, messages: list[dict], max_tokens: int, temperature: float):
-    try:
-        return client.chat.completions.create(
-            model=LLAMA_MODEL,
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
-    except NotFoundError:
-        active_model = _resolve_active_model(client)
-        return client.chat.completions.create(
-            model=active_model,
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
+def _run_llm(messages: list[dict], max_tokens: int = 1500, temperature: float = 0.5) -> str | None:
+    client = get_client()
+    if client is None:
+        return None
+
+    safe_messages = _clean_messages(messages)
+    for model_name in PREFERRED_MODELS:
+        try:
+            res = client.chat.completions.create(
+                model=model_name,
+                messages=safe_messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+            text = (res.choices[0].message.content or "").strip()
+            if text:
+                return text
+        except Exception:
+            continue
+    return None
 
 
 def wants_hindi(user_text: str) -> bool:
@@ -103,7 +103,7 @@ def wants_hindi(user_text: str) -> bool:
 def detect_intent(user_text: str) -> str:
     text = user_text.strip().lower()
 
-    if any(k in text for k in ["team", "member", "members", "who made", "created by", "bnaya", "banaya", "kaun hai"]):
+    if any(k in text for k in ["team", "member", "members", "who made", "created by", "who amde", "bnaya", "banaya", "kaun hai"]):
         return "team"
 
     if any(k in text for k in ["how you can help", "how can you help", "what can you do", "features", "your purpose"]):
@@ -130,7 +130,6 @@ def detect_intent(user_text: str) -> str:
 
 
 def generate_incident_steps(incident_text: str, hindi: bool = False) -> str:
-    client = get_client()
     lang_prompt = (
         "Respond in clear, natural Hinglish or simple Hindi so it is easy to read and complete."
         if hindi
@@ -148,34 +147,39 @@ def generate_incident_steps(incident_text: str, hindi: bool = False) -> str:
     4. One short tip to prevent this in the future.
     """
 
-    chat_completion = _create_completion(
-        client=client,
+    llm_reply = _run_llm(
         messages=[
             {"role": "system", "content": SYSTEM_INSTRUCTION},
             {"role": "user", "content": prompt},
         ],
-        max_tokens=2048,
+        max_tokens=1500,
         temperature=0.35,
     )
-    return (chat_completion.choices[0].message.content or "Could not generate guidance.").strip()
+    if llm_reply:
+        return llm_reply
+
+    return (
+        "**Emergency Action Steps:**\n"
+        "**1. Secure Accounts:** Change passwords immediately and enable 2FA.\n"
+        "**2. Block / Freeze:** If money or phone is involved, block cards/UPI/SIM right away.\n"
+        "**3. Report in India:** Call **1930** or visit **cybercrime.gov.in** (and **ceir.gov.in** for lost/stolen phones)."
+    )
 
 
 def ask_gemini(history: list[dict], new_message: str) -> str:
-    client = get_client()
     messages = [{"role": "system", "content": SYSTEM_INSTRUCTION}]
-
     for msg in history:
         role = "user" if msg.get("role") == "user" else "assistant"
-        content = msg.get("content", "")
+        content = (msg.get("content") or "").strip()
         if content:
             messages.append({"role": role, "content": content})
-
     messages.append({"role": "user", "content": new_message})
 
-    chat_completion = _create_completion(
-        client=client,
-        messages=messages,
-        max_tokens=2048,
-        temperature=0.55,
+    llm_reply = _run_llm(messages=messages, max_tokens=1500, temperature=0.55)
+    if llm_reply:
+        return llm_reply
+
+    return (
+        "**CyberShield AI:** Live AI response is temporarily unavailable right now. "
+        "You can still use **URL Scanner**, **Password Check**, **Message Check**, or call **1930** / visit **cybercrime.gov.in** for cyber help in India."
     )
-    return (chat_completion.choices[0].message.content or "Could not generate a response.").strip()
