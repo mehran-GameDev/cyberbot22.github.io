@@ -82,7 +82,6 @@ st.markdown(
         color: #f8fafc;
     }
 
-    /* Thinking Animation Box */
     .thinking-box {
         display: inline-flex;
         align-items: center;
@@ -254,7 +253,7 @@ def format_capabilities_reply(hindi: bool = False) -> str:
             "**2. Fake / Phishing URL Scanner:** Suspicious links scan karke risk level dekhein.\n"
             "**3. Password Strength Checker:** Password score aur strong banane ke tips paayein.\n"
             "**4. Suspicious Message Detector:** Urgent/scam messages aur risky links pakdein.\n"
-            "**5. AI Incident Response (SOS):** Hack, fraud, ya blackmail ke waqt step-by-step action plan."
+            "**5. AI + Offline SOS Response:** Hack, fraud, ya blackmail ke waqt step-by-step action plan."
         )
     return (
         "**Hey! I am CyberShield AI — your friendly cybersecurity buddy. Here is how I can help:**\n"
@@ -262,7 +261,7 @@ def format_capabilities_reply(hindi: bool = False) -> str:
         "**2. Fake URL Scanner:** Check links for phishing patterns, risky TLDs, or raw IPs.\n"
         "**3. Password Strength Checker:** Test password strength and get instant upgrade tips.\n"
         "**4. Suspicious Message Detector:** Spot urgency traps, scam wording, and risky links.\n"
-        "**5. AI Incident Response (SOS):** Get clear step-by-step action plans for hacks or scams."
+        "**5. Smart SOS Response:** Get clear step-by-step action plans for hacks or scams."
     )
 
 
@@ -281,7 +280,7 @@ if "messages" not in st.session_state:
 
 with st.sidebar:
     st.markdown("## **🛡️ CyberShield AI**")
-    st.markdown("**AI Cybersecurity Assistant**")
+    st.markdown("**AI + Offline Fallback Assistant**")
     st.session_state.mode = st.radio(
         "**Select Mode**",
         ["Auto Chat", "URL Scanner", "Password Check", "Message Check", "SOS Incident Guide", "Team Info"],
@@ -302,7 +301,7 @@ st.markdown(
     """
     <div class="cyber-hero">
         <div class="hero-title"><b>🛡️ CyberShield AI Assistant</b></div>
-        <p class="hero-sub"><b>AI Emergency Guidance • URL Scanner • Password Audit • Message Check • Smart Chat</b></p>
+        <p class="hero-sub"><b>Smart SOS Guidance • URL Scanner • Password Audit • Message Check • Hybrid AI/Offline Chat</b></p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -345,7 +344,7 @@ elif st.session_state.mode == "Message Check":
 
 elif st.session_state.mode == "SOS Incident Guide":
     st.markdown("### **🚨 Incident Response & Emergency Action Plan**")
-    st.markdown("**Select a cyber crime category or describe what happened to generate instant AI steps.**")
+    st.markdown("**Select a cyber crime category or describe what happened to generate step-by-step actions.**")
 
     incident_options = [
         "Instagram / Social Media Account Hacked",
@@ -369,17 +368,13 @@ elif st.session_state.mode == "SOS Incident Guide":
     if st.button("**Generate Step-by-Step Action Plan**", type="primary"):
         if target_incident.strip():
             anim_box = st.empty()
-            show_thinking(anim_box, "Generating emergency action steps")
-            try:
-                guide = generate_incident_steps(target_incident, hindi=False)
-                anim_box.empty()
-                st.markdown(
-                    f"<div class='cyber-card'><b>{guide.replace(chr(10), '<br>')}</b></div>",
-                    unsafe_allow_html=True,
-                )
-            except Exception as e:
-                anim_box.empty()
-                st.markdown(f"<div class='cyber-card'><b>Error: {e}</b></div>", unsafe_allow_html=True)
+            show_thinking(anim_box, "Preparing emergency action steps")
+            guide = generate_incident_steps(target_incident, hindi=False)
+            anim_box.empty()
+            st.markdown(
+                f"<div class='cyber-card'><b>{guide.replace(chr(10), '<br>')}</b></div>",
+                unsafe_allow_html=True,
+            )
         else:
             st.markdown("<div class='cyber-card'><b>Please describe your situation first.</b></div>", unsafe_allow_html=True)
 
@@ -434,16 +429,10 @@ if st.session_state.mode == "Auto Chat":
                 )
             elif intent == "sos":
                 show_thinking(anim_box, "Analyzing threat & preparing SOS steps")
-                try:
-                    reply = generate_incident_steps(prompt, hindi=hindi_mode)
-                except Exception as exc:
-                    reply = f"**Error generating emergency plan: {exc}. Please dial 1930 immediately.**"
+                reply = generate_incident_steps(prompt, hindi=hindi_mode)
             else:
                 show_thinking(anim_box, "CyberShield AI is thinking")
-                try:
-                    reply = ask_gemini(st.session_state.messages[:-1], prompt)
-                except Exception as exc:
-                    reply = f"**Error: {exc}**"
+                reply = ask_gemini(st.session_state.messages[:-1], prompt)
 
             anim_box.empty()
             st.markdown(f"**{reply}**")
