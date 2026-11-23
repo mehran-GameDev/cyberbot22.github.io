@@ -103,27 +103,3 @@ def check_message(text: str) -> dict:
 
     risk = "High" if len(signals) >= 2 else "Moderate" if len(signals) == 1 else "Low"
     return {"risk": risk, "signals": signals, "links": links}
-
-
-def get_sos_guide(scenario: str) -> list[str]:
-    key = scenario.lower()
-    if any(k in key for k in ["upi", "bank", "money", "fraud", "scam", "payment", "paise"]):
-        return [
-            "Freeze or block your debit/credit card, UPI, or bank account immediately through your banking app or bank helpline.",
-            "Call the India National Cyber Crime Helpline **1930** or file a report at **cybercrime.gov.in** right away.",
-            "Save transaction IDs, UTR numbers, fraudster details/UPI IDs, and payment screenshots.",
-            "Visit your bank branch to submit a written complaint and collect an acknowledgement copy.",
-        ]
-    if any(k in key for k in ["hack", "instagram", "gmail", "google", "account", "password"]):
-        return [
-            "Reset your password immediately using your official recovery email or registered phone number.",
-            "Open security settings and select **Log out of all devices / active sessions**.",
-            "Turn on Two-Factor Authentication (2FA) using an authenticator app.",
-            "Let close friends or contacts know so they do not fall for scam messages sent from your account.",
-        ]
-    return [
-        "Turn off Wi-Fi and mobile data immediately.",
-        "Uninstall any recently added suspicious apps or unknown APK/installer files.",
-        "Restart the device and run a trusted security or antivirus scan.",
-        "Change passwords for banking and email accounts from a clean, trusted device.",
-    ]
