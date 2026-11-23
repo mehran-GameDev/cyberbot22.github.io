@@ -228,11 +228,11 @@ def format_team_reply() -> str:
 def format_help_reply() -> str:
     return (
         "**CyberShield AI Features:**\n"
-        "**1. Smart Hinglish Chat:** Cyber safety, online privacy aur tech queries solve karta hai.\n"
-        "**2. AI SOS Engine:** Kisi bhi online fraud ya hack par direct step-by-step action plan.\n"
-        "**3. URL Scanner:** Phishing aur suspicious links detect karta hai.\n"
-        "**4. Password Strength:** Password resiliency check aur upgrade recommendations.\n"
-        "**5. Message Analyzer:** Fraud WhatsApp / SMS urgency messages check karta hai."
+        "**1. Smart AI Chat:** Answers questions on online safety, privacy, and cybersecurity.\n"
+        "**2. AI SOS Engine:** Provides numbered recovery steps for hacks, scams, and cyber incidents.\n"
+        "**3. URL Scanner:** Flags suspicious links, risky domains, and phishing patterns.\n"
+        "**4. Password Strength:** Scores password strength and suggests improvements.\n"
+        "**5. Message Analyzer:** Spots urgency triggers, links, and credential requests in messages."
     )
 
 
@@ -243,8 +243,8 @@ if "messages" not in st.session_state:
         {
             "role": "assistant",
             "content": (
-                "**Hey! Main CyberShield AI hoon — aapka cybersecurity peer.** "
-                "Mujhse koi bhi doubt pucho, link check karvao, password test karo ya kisi hack/fraud par instant SOS help lo!"
+                "**Hey there! I am CyberShield AI — your cybersecurity assistant.** "
+                "Ask me anything, check a URL, test a password, or describe an incident for step-by-step SOS guidance."
             ),
         }
     ]
@@ -253,7 +253,7 @@ with st.sidebar:
     st.markdown("## **🛡️ CyberShield AI**")
     st.markdown("**Real-Time Threat Assistant**")
     st.session_state.mode = st.radio(
-        "**Mode Select Karein**",
+        "**Select Mode**",
         ["Auto Chat", "SOS Incident Guide", "URL Scanner", "Password Check", "Message Check", "Team Info"],
     )
     st.markdown(
@@ -278,22 +278,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Mobile quick switch
-mode_options = ["Auto Chat", "SOS Incident Guide", "URL Scanner", "Password Check", "Message Check", "Team Info"]
-quick_mode = st.selectbox(
-    "Quick Switch",
-    mode_options,
-    index=mode_options.index(st.session_state.mode),
-    label_visibility="collapsed",
-)
-if quick_mode != st.session_state.mode:
-    st.session_state.mode = quick_mode
-    st.rerun()
-
-# ----------------- SOS INCIDENT GUIDE -----------------
 if st.session_state.mode == "SOS Incident Guide":
     st.markdown("### **🚨 AI Emergency Incident Guide**")
-    st.markdown("Incident select karein ya apna case likhein, CyberShield AI instant recovery steps batayega.")
+    st.markdown("Select an incident type or describe your situation for instant numbered recovery steps.")
 
     incident_library = [
         "UPI / Bank Fraud (Money Debited via Unauthorized Transaction)",
@@ -302,7 +289,7 @@ if st.session_state.mode == "SOS Incident Guide":
         "WhatsApp Video Call Blackmail / Sextortion Extortion",
         "Fake Job / Part-Time Telegram Task & Investment Fraud",
         "Lost or Stolen Mobile Phone (Risk of SIM & UPI Misuse)",
-        "Identity Theft / Aadhaar or PAN Card Exploitation",
+        "Identity Theft / Misuse of Government ID Details",
         "Suspicious APK / Spyware / Unknown App Installed",
         "Ransomware Attack / PC Files Locked & Encrypted",
         "Clicked a Phishing Link & Entered Account Credentials",
@@ -321,8 +308,8 @@ if st.session_state.mode == "SOS Incident Guide":
 
     if selected_incident == "Other Custom Emergency / Attack Scenario...":
         custom_input = st.text_area(
-            "**Apna incident detail mein likhein:**",
-            placeholder="Mere sath yeh hua, call aayi thi...",
+            "**Describe your situation in detail:**",
+            placeholder="Share what happened, any suspicious calls/links, or account impact...",
         )
         target_incident = custom_input.strip()
     else:
@@ -331,17 +318,15 @@ if st.session_state.mode == "SOS Incident Guide":
     if st.button("**Generate AI Emergency Action Plan**", type="primary"):
         if target_incident:
             anim_box = st.empty()
-            show_thinking(anim_box, "Emergency steps prepare ho rahe hain")
+            show_thinking(anim_box, "Preparing emergency action steps")
             ai_response = generate_incident_steps(target_incident)
             anim_box.empty()
-            st.markdown(
-                f"<div class='cyber-card'>{ai_response.replace(chr(10), '<br>')}</div>",
-                unsafe_allow_html=True,
-            )
+            st.markdown("<div class='cyber-card'>", unsafe_allow_html=True)
+            st.markdown(ai_response)
+            st.markdown("</div>", unsafe_allow_html=True)
         else:
-            st.warning("Pehle details provide karein.")
+            st.warning("Please enter incident details first.")
 
-# ----------------- URL SCANNER -----------------
 elif st.session_state.mode == "URL Scanner":
     url_in = st.text_input("**Enter URL to scan**", placeholder="https://example.com")
     if st.button("**Scan URL**") and url_in:
@@ -353,7 +338,6 @@ elif st.session_state.mode == "URL Scanner":
             unsafe_allow_html=True,
         )
 
-# ----------------- PASSWORD CHECK -----------------
 elif st.session_state.mode == "Password Check":
     pwd_in = st.text_input("**Enter password to test**", type="password")
     if st.button("**Check Strength**") and pwd_in:
@@ -367,7 +351,6 @@ elif st.session_state.mode == "Password Check":
         for tip in res["tips"]:
             st.markdown(f"**- {tip}**")
 
-# ----------------- MESSAGE CHECK -----------------
 elif st.session_state.mode == "Message Check":
     msg_in = st.text_area("**Paste suspicious SMS / WhatsApp message**")
     if st.button("**Analyze Message**") and msg_in:
@@ -379,20 +362,18 @@ elif st.session_state.mode == "Message Check":
             unsafe_allow_html=True,
         )
 
-# ----------------- TEAM INFO -----------------
 elif st.session_state.mode == "Team Info":
     st.markdown(
         f"<div class='cyber-card'><b>{format_team_reply().replace(chr(10), '<br>')}</b></div>",
         unsafe_allow_html=True,
     )
 
-# ----------------- AUTO CHAT -----------------
 elif st.session_state.mode == "Auto Chat":
     for m in st.session_state.messages:
         with st.chat_message(m["role"]):
             st.markdown(f"**{m['content']}**")
 
-    prompt = st.chat_input("Chat karein, link paste karein ya incident batayein...")
+    prompt = st.chat_input("Chat freely, paste a link, or describe an incident...")
     if prompt:
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -423,7 +404,7 @@ elif st.session_state.mode == "Auto Chat":
                     "\n".join(f"**- {t}**" for t in r["tips"]) if r["tips"] else "**- Strong password!**"
                 )
             elif intent == "sos":
-                show_thinking(anim_box, "Emergency steps prepare ho rahe hain")
+                show_thinking(anim_box, "Preparing emergency action steps")
                 reply = generate_incident_steps(prompt)
             else:
                 show_thinking(anim_box, "CyberShield AI thinking")
