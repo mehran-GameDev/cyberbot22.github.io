@@ -12,7 +12,7 @@ st.set_page_config(
     page_title="CyberShield AI | Cybersecurity Assistant",
     page_icon="🛡️",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
 st.markdown(
@@ -22,9 +22,12 @@ st.markdown(
 
     html, body, [class*="css"] {
         font-family: 'Plus Jakarta Sans', sans-serif;
+        overflow-x: hidden;
     }
     code, pre {
         font-family: 'JetBrains Mono', monospace !important;
+        white-space: pre-wrap;
+        word-break: break-word;
     }
 
     .stApp {
@@ -33,17 +36,19 @@ st.markdown(
     }
 
     .block-container {
-        padding-top: 1.8rem;
+        padding-top: 1.6rem;
         padding-bottom: 3rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
         max-width: 1120px;
     }
 
     .cyber-hero {
-        background: linear-gradient(135deg, rgba(17, 24, 39, 0.9) 0%, rgba(15, 23, 42, 0.75) 100%);
+        background: linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(15, 23, 42, 0.78) 100%);
         border: 1px solid rgba(0, 210, 255, 0.28);
         border-radius: 18px;
-        padding: 22px 28px;
-        margin-bottom: 24px;
+        padding: 22px 26px;
+        margin-bottom: 20px;
         box-shadow: 0 10px 30px -10px rgba(0, 210, 255, 0.18);
         position: relative;
         overflow: hidden;
@@ -61,69 +66,63 @@ st.markdown(
         letter-spacing: -0.4px;
         color: #ffffff;
         margin: 0 0 6px 0;
+        line-height: 1.2;
     }
     .hero-sub {
-        font-size: 16px;
+        font-size: 15.5px;
         font-weight: 700;
         color: #7dd3fc;
         margin: 0;
+        line-height: 1.45;
     }
 
     .cyber-card {
-        background: rgba(15, 23, 42, 0.85);
+        background: rgba(15, 23, 42, 0.88);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-left: 4px solid #38bdf8;
         border-radius: 14px;
-        padding: 20px 24px;
-        margin: 14px 0;
-        font-size: 17px;
+        padding: 18px 22px;
+        margin: 12px 0;
+        font-size: 16.5px;
         font-weight: 600;
-        line-height: 1.7;
+        line-height: 1.65;
         color: #f8fafc;
+        overflow-wrap: anywhere;
     }
 
     .thinking-box {
         display: inline-flex;
         align-items: center;
         gap: 12px;
-        background: rgba(14, 165, 233, 0.12);
+        background: rgba(14, 165, 233, 0.14);
         border: 1px solid rgba(56, 189, 248, 0.4);
         border-radius: 14px;
-        padding: 12px 18px;
+        padding: 11px 16px;
         margin: 8px 0 14px 0;
         color: #e0f2fe;
         font-weight: 800;
-        font-size: 15.5px;
-        box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+        font-size: 15px;
+        max-width: 100%;
     }
     .thinking-dots {
         display: inline-flex;
         align-items: center;
         gap: 5px;
+        flex-shrink: 0;
     }
     .thinking-dots span {
-        width: 9px;
-        height: 9px;
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
         background: #38bdf8;
         box-shadow: 0 0 8px #38bdf8;
         animation: cyberPulse 1.2s infinite ease-in-out;
     }
-    .thinking-dots span:nth-child(2) {
-        animation-delay: 0.2s;
-    }
-    .thinking-dots span:nth-child(3) {
-        animation-delay: 0.4s;
-    }
+    .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
     @keyframes cyberPulse {
-        0%, 80%, 100% {
-            transform: scale(0.65);
-            opacity: 0.45;
-        }
-        40% {
-            transform: scale(1.2);
-            opacity: 1;
-        }
+        0%, 80%, 100% { transform: scale(0.65); opacity: 0.45; }
+        40% { transform: scale(1.2); opacity: 1; }
     }
 
     .risk-pill {
@@ -131,7 +130,7 @@ st.markdown(
         padding: 4px 12px;
         border-radius: 6px;
         font-weight: 800;
-        font-size: 15px;
+        font-size: 14px;
         letter-spacing: 0.4px;
         text-transform: uppercase;
     }
@@ -172,34 +171,36 @@ st.markdown(
     .sidebar-helpline-card h4 {
         margin: 0 0 8px 0;
         color: #fb7185;
-        font-size: 14px;
+        font-size: 13.5px;
         font-weight: 800;
         text-transform: uppercase;
     }
 
     [data-testid="stChatMessage"] {
-        background: rgba(15, 23, 42, 0.65);
+        background: rgba(15, 23, 42, 0.72);
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 14px 18px;
-        margin-bottom: 12px;
+        border-radius: 14px;
+        padding: 12px 16px;
+        margin-bottom: 10px;
     }
     [data-testid="stChatMessageContent"] p,
     [data-testid="stChatMessageContent"] li {
-        font-size: 17px !important;
+        font-size: 16px !important;
         font-weight: 700 !important;
-        line-height: 1.7 !important;
+        line-height: 1.65 !important;
         color: #f8fafc !important;
+        overflow-wrap: anywhere;
     }
 
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
+    .stTextInput>div>div>input,
+    .stTextArea>div>div>textarea {
         background-color: #0d1527 !important;
         color: #ffffff !important;
         font-weight: 700 !important;
         border: 1px solid rgba(56, 189, 248, 0.3) !important;
         border-radius: 10px !important;
         font-size: 16px !important;
-        padding: 12px 14px !important;
+        padding: 11px 14px !important;
     }
     .stButton>button {
         background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
@@ -207,7 +208,50 @@ st.markdown(
         font-weight: 800 !important;
         border: 1px solid rgba(255, 255, 255, 0.18) !important;
         border-radius: 10px !important;
-        padding: 8px 22px !important;
+        padding: 10px 20px !important;
+        min-height: 44px;
+    }
+
+    /* Mobile Optimization */
+    @media (max-width: 768px) {
+        .block-container {
+            padding-top: 1rem;
+            padding-bottom: 5.5rem;
+            padding-left: 0.85rem;
+            padding-right: 0.85rem;
+        }
+        .cyber-hero {
+            padding: 16px 18px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+        }
+        .hero-title {
+            font-size: 22px;
+        }
+        .hero-sub {
+            font-size: 13px;
+        }
+        .cyber-card {
+            padding: 14px 15px;
+            font-size: 15px;
+            border-radius: 12px;
+        }
+        [data-testid="stChatMessage"] {
+            padding: 10px 12px;
+            border-radius: 12px;
+        }
+        [data-testid="stChatMessageContent"] p,
+        [data-testid="stChatMessageContent"] li {
+            font-size: 15px !important;
+            line-height: 1.55 !important;
+        }
+        .stButton>button {
+            width: 100% !important;
+        }
+        .thinking-box {
+            font-size: 13.5px;
+            padding: 10px 12px;
+        }
     }
     </style>
     """,
@@ -307,6 +351,18 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Mobile-friendly quick mode selector right below hero on smaller screens
+mode_options = ["Auto Chat", "SOS Incident Guide", "URL Scanner", "Password Check", "Message Check", "Team Info"]
+quick_mode = st.selectbox(
+    "**Quick Mode Switch (Mobile & PC)**",
+    mode_options,
+    index=mode_options.index(st.session_state.mode),
+    label_visibility="collapsed",
+)
+if quick_mode != st.session_state.mode:
+    st.session_state.mode = quick_mode
+    st.rerun()
+
 # ----------------- SOS INCIDENT GUIDE (CONNECTED TO AI) -----------------
 if st.session_state.mode == "SOS Incident Guide":
     st.markdown("### **🚨 AI Emergency Incident Response Guide**")
@@ -337,7 +393,7 @@ if st.session_state.mode == "SOS Incident Guide":
     ]
 
     selected_incident = st.selectbox("**Choose an incident scenario:**", incident_library)
-    
+
     custom_input = ""
     if selected_incident == "Other Custom Emergency / Attack Scenario...":
         custom_input = st.text_area(
@@ -348,19 +404,14 @@ if st.session_state.mode == "SOS Incident Guide":
     else:
         target_incident = selected_incident
 
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        lang_preference = st.checkbox("**Respond in Hindi / Hinglish**", value=False)
+    lang_preference = st.checkbox("**Respond in Hindi / Hinglish**", value=False)
 
     if st.button("**Generate AI Emergency Action Plan**", type="primary"):
         if target_incident:
             anim_box = st.empty()
             show_thinking(anim_box, "CyberShield AI is analyzing the incident and synthesizing emergency steps")
-            
-            # Direct connection to the Groq AI Engine
             ai_response = generate_incident_steps(target_incident, hindi=lang_preference)
             anim_box.empty()
-            
             st.markdown(
                 f"<div class='cyber-card'>{ai_response.replace(chr(10), '<br>')}</div>",
                 unsafe_allow_html=True,
