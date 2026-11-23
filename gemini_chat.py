@@ -46,8 +46,15 @@ def _pick_model(client: Groq) -> str:
         "gemma2-9b-it",
     ]
     blocked_keywords = [
-        "whisper", "guard", "tts", "embed", "audio",
-        "vision", "safeguard", "orpheus", "playai"
+        "whisper",
+        "guard",
+        "tts",
+        "embed",
+        "audio",
+        "vision",
+        "safeguard",
+        "orpheus",
+        "playai",
     ]
     allowed_families = ["llama", "qwen", "gemma", "deepseek", "mistral"]
 
