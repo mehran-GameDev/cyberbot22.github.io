@@ -6,9 +6,6 @@ from groq import Groq
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
-# Sabse stable aur fast Groq free model
-PRIMARY_MODEL = "llama-3.1-8b-instant"
-
 TEAM_MEMBERS = [
     "Mehran",
     "Ansh Raj Verma",
@@ -19,10 +16,10 @@ TEAM_MEMBERS = [
 SYSTEM_INSTRUCTION = (
     "You are CyberShield AI, a sharp, friendly, and practical cybersecurity peer "
     "created by Mehran, Ansh Raj Verma, Anshuman Tiwari, and Piyush Parmar. "
-    "Respond naturally in casual Hinglish (natural mix of Hindi and English written in Latin/English script) "
-    "or friendly Indian English. Keep it direct, crisp, and no gyaan. "
-    "When a user asks for incident help or SOS, always give direct numbered action steps (1, 2, 3...) "
-    "and include relevant Indian authorities like 1930, cybercrime.gov.in, or ceir.gov.in."
+    "Always reply naturally in Hinglish (natural mix of Hindi and English written in Roman/Latin script) "
+    "or friendly Indian English. Keep answers clear, direct, and helpful. "
+    "When a user reports any incident, hack, or fraud, always provide numbered action steps (1, 2, 3...) "
+    "and include Indian helplines/portals like 1930, cybercrime.gov.in, or ceir.gov.in when relevant."
 )
 
 
@@ -41,6 +38,28 @@ def get_groq_api_key() -> str | None:
     return None
 
 
+def _pick_model(client: Groq) -> str:
+    preferred = [
+        "llama-3.1-8b-instant",
+        "llama-3.3-70b-versatile",
+        "gemma2-9b-it",
+        "qwen/qwen3-32b",
+    ]
+    try:
+        models = client.models.list().data or []
+        ids = [m.id for m in models if getattr(m, "id", None)]
+        for p in preferred:
+            if p in ids:
+                return p
+        for m_id in ids:
+            low = m_id.lower()
+            if not any(skip in low for skip in ["whisper", "guard", "tts", "embed", "audio", "vision", "safeguard"]):
+                return m_id
+    except Exception:
+        pass
+    return "llama-3.1-8b-instant"
+
+
 def _clean_messages(messages: list[dict]) -> list[dict]:
     cleaned = []
     for m in messages:
@@ -56,33 +75,22 @@ def _call_groq(messages: list[dict], max_tokens: int = 1500, temperature: float 
     if not api_key:
         return (
             "⚠️ **API Key Missing:** Streamlit Cloud Secrets ya `.env` mein `GROQ_API_KEY` nahi mila. "
-            "Please check karein."
+            "Please `GROQ_API_KEY = \"gsk_...\"` add karein."
         )
 
+    safe_messages = _clean_messages(messages)
     try:
         client = Groq(api_key=api_key)
-        safe_messages = _clean_messages(messages)
-        
+        model_name = _pick_model(client)
         response = client.chat.completions.create(
-            model=PRIMARY_MODEL,
+            model=model_name,
             messages=safe_messages,
             max_tokens=max_tokens,
             temperature=temperature,
         )
         return (response.choices[0].message.content or "").strip()
     except Exception as e:
-        # Fallback to 70b if 8b has issues
-        try:
-            client = Groq(api_key=api_key)
-            response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=_clean_messages(messages),
-                max_tokens=max_tokens,
-                temperature=temperature,
-            )
-            return (response.choices[0].message.content or "").strip()
-        except Exception as e2:
-            return f"⚠️ **Groq Error:** {str(e2)}"
+        return f"⚠️ **Groq Error:** {str(e)}"
 
 
 def detect_intent(user_text: str) -> str:
@@ -117,11 +125,11 @@ def detect_intent(user_text: str) -> str:
 def generate_incident_steps(incident_text: str) -> str:
     prompt = f"""
     User ne yeh cyber incident ya attack report kiya hai: "{incident_text}".
-    Hinglish mein natural, calm aur crisp reply do:
+    Hinglish mein natural, calm aur clear reply do:
     1. Ek line ka reassuring context.
-    2. Exact action steps numbered list (1, 2, 3...) mein.
-    3. India specific reporting portal & helpline (1930 / cybercrime.gov.in / ceir.gov.in).
-    4. One prevention rule for future.
+    2. Numbered immediate action steps (1, 2, 3...).
+    3. India reporting helpline & portal (1930 / cybercrime.gov.in / ceir.gov.in) agar applicable ho.
+    4. Ek short prevention tip future ke liye.
     """
     return _call_groq(
         messages=[
