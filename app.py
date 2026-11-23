@@ -280,40 +280,13 @@ st.markdown(
 
 if st.session_state.mode == "SOS Incident Guide":
     st.markdown("### **🚨 AI Emergency Incident Guide**")
-    st.markdown("Select an incident type or describe your situation for instant numbered recovery steps.")
+    st.markdown("Describe what happened below and click the button for instant numbered recovery steps.")
 
-    incident_library = [
-        "UPI / Bank Fraud (Money Debited via Unauthorized Transaction)",
-        "Instagram Account Hacked & Password / Email Changed",
-        "WhatsApp Account Hijacked / Fake OTP Verification Scam",
-        "WhatsApp Video Call Blackmail / Sextortion Extortion",
-        "Fake Job / Part-Time Telegram Task & Investment Fraud",
-        "Lost or Stolen Mobile Phone (Risk of SIM & UPI Misuse)",
-        "Identity Theft / Misuse of Government ID Details",
-        "Suspicious APK / Spyware / Unknown App Installed",
-        "Ransomware Attack / PC Files Locked & Encrypted",
-        "Clicked a Phishing Link & Entered Account Credentials",
-        "Debit / Credit Card Cloning or Unauthorized ATM Withdrawal",
-        "Fake Courier / Customs / FedEx Parcel Call Scam",
-        "Fake Instant Loan App Harassment & Contact Blackmail",
-        "Fake Tech Support / AnyDesk / TeamViewer Screen Share Scam",
-        "Cyberbullying / Online Harassment / Defamation on Social Media",
-        "Online Shopping / Fake Store Order & QR Code Scam",
-        "Home Wi-Fi Router Compromised / Rogue Connected Devices",
-        "Personal Email Leaked in Dark Web Data Breach",
-        "Other Custom Emergency / Attack Scenario...",
-    ]
-
-    selected_incident = st.selectbox("**Select incident type:**", incident_library)
-
-    if selected_incident == "Other Custom Emergency / Attack Scenario...":
-        custom_input = st.text_area(
-            "**Describe your situation in detail:**",
-            placeholder="Share what happened, any suspicious calls/links, or account impact...",
-        )
-        target_incident = custom_input.strip()
-    else:
-        target_incident = selected_incident
+    target_incident = st.text_area(
+        "**Describe your situation:**",
+        placeholder="Type your incident details here...",
+        height=130,
+    ).strip()
 
     if st.button("**Generate AI Emergency Action Plan**", type="primary"):
         if target_incident:
@@ -325,7 +298,7 @@ if st.session_state.mode == "SOS Incident Guide":
             st.markdown(ai_response)
             st.markdown("</div>", unsafe_allow_html=True)
         else:
-            st.warning("Please enter incident details first.")
+            st.warning("Please type your situation first.")
 
 elif st.session_state.mode == "URL Scanner":
     url_in = st.text_input("**Enter URL to scan**", placeholder="https://example.com")
