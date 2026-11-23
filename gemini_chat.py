@@ -3,12 +3,18 @@ from pathlib import Path
 import re
 from dotenv import load_dotenv
 from groq import Groq
-from offline_engine import TEAM_MEMBERS, offline_chat_reply, offline_sos_guide
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
 LLAMA_MODEL = "llama-3.3-70b-versatile"
+
+TEAM_MEMBERS = [
+    "Mehran",
+    "Ansh Raj Verma",
+    "Anshuman Tiwari",
+    "Piyush Parmar",
+]
 
 SYSTEM_INSTRUCTION = (
     "You are CyberShield AI, a friendly, reassuring, and smart cybersecurity peer "
@@ -39,7 +45,7 @@ def get_groq_api_key() -> str | None:
 def get_client() -> Groq:
     api_key = get_groq_api_key()
     if not api_key:
-        raise ValueError("GROQ_API_KEY is missing.")
+        raise ValueError("GROQ_API_KEY is missing. Add it to .env or Streamlit Secrets.")
     return Groq(api_key=api_key)
 
 
@@ -87,68 +93,52 @@ def detect_intent(user_text: str) -> str:
 
 
 def generate_incident_steps(incident_text: str, hindi: bool = False) -> str:
-    """Generates step-by-step SOS guidance using Llama on Groq, with offline fallback."""
-    try:
-        client = get_client()
-        lang_prompt = (
-            "Respond in clear, natural Hinglish or simple Hindi so it is easy to read and complete."
-            if hindi
-            else "Respond in clear, friendly English."
-        )
+    client = get_client()
+    lang_prompt = (
+        "Respond in clear, natural Hinglish or simple Hindi so it is easy to read and complete."
+        if hindi
+        else "Respond in clear, friendly English."
+    )
 
-        prompt = f"""
-        A user reported this cybersecurity incident or emergency: "{incident_text}".
-        {lang_prompt}
+    prompt = f"""
+    A user reported this cybersecurity incident or emergency: "{incident_text}".
+    {lang_prompt}
 
-        Provide a complete, clear response:
-        1. One calm, reassuring opening line.
-        2. Numbered immediate action steps (1, 2, 3...) tailored to this exact situation.
-        3. Official support / reporting channels (including 1930, cybercrime.gov.in, and ceir.gov.in in India when applicable).
-        4. One short tip to prevent this in the future.
-        """
+    Provide a complete, clear response:
+    1. One calm, reassuring opening line.
+    2. Numbered immediate action steps (1, 2, 3...) tailored to this exact situation.
+    3. Official support / reporting channels (including 1930, cybercrime.gov.in, and ceir.gov.in in India when applicable).
+    4. One short tip to prevent this in the future.
+    """
 
-        chat_completion = client.chat.completions.create(
-            model=LLAMA_MODEL,
-            messages=[
-                {"role": "system", "content": SYSTEM_INSTRUCTION},
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=2048,
-            temperature=0.35,
-        )
-        text = (chat_completion.choices[0].message.content or "").strip()
-        if text:
-            return text
-    except Exception:
-        pass
-
-    return offline_sos_guide(incident_text)
+    chat_completion = client.chat.completions.create(
+        model=LLAMA_MODEL,
+        messages=[
+            {"role": "system", "content": SYSTEM_INSTRUCTION},
+            {"role": "user", "content": prompt},
+        ],
+        max_tokens=2048,
+        temperature=0.35,
+    )
+    return (chat_completion.choices[0].message.content or "Could not generate guidance.").strip()
 
 
 def ask_gemini(history: list[dict], new_message: str) -> str:
-    """Sends full chat thread to Llama on Groq and falls back to offline smart replies if needed."""
-    try:
-        client = get_client()
-        messages = [{"role": "system", "content": SYSTEM_INSTRUCTION}]
+    client = get_client()
+    messages = [{"role": "system", "content": SYSTEM_INSTRUCTION}]
 
-        for msg in history:
-            role = "user" if msg.get("role") == "user" else "assistant"
-            content = msg.get("content", "")
-            if content:
-                messages.append({"role": role, "content": content})
+    for msg in history:
+        role = "user" if msg.get("role") == "user" else "assistant"
+        content = msg.get("content", "")
+        if content:
+            messages.append({"role": role, "content": content})
 
-        messages.append({"role": "user", "content": new_message})
+    messages.append({"role": "user", "content": new_message})
 
-        chat_completion = client.chat.completions.create(
-            model=LLAMA_MODEL,
-            messages=messages,
-            max_tokens=2048,
-            temperature=0.55,
-        )
-        text = (chat_completion.choices[0].message.content or "").strip()
-        if text:
-            return text
-    except Exception:
-        pass
-
-    return offline_chat_reply(new_message)
+    chat_completion = client.chat.completions.create(
+        model=LLAMA_MODEL,
+        messages=messages,
+        max_tokens=2048,
+        temperature=0.55,
+    )
+    return (chat_completion.choices[0].message.content or "Could not generate a response.").strip()
