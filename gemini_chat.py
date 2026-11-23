@@ -2,12 +2,13 @@ import os
 from pathlib import Path
 import re
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
+from groq import Groq
 from offline_engine import TEAM_MEMBERS, offline_chat_reply, offline_sos_guide
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
+
+LLAMA_MODEL = "llama-3.3-70b-versatile"
 
 SYSTEM_INSTRUCTION = (
     "You are CyberShield AI, a friendly, reassuring, and smart cybersecurity peer "
@@ -20,29 +21,26 @@ SYSTEM_INSTRUCTION = (
 )
 
 
-def get_api_key() -> str | None:
-    key = os.getenv("GEMINI_API_KEY")
-    if key and key.strip() and key.strip() != "your_gemini_api_key_here":
+def get_groq_api_key() -> str | None:
+    key = os.getenv("GROQ_API_KEY")
+    if key and key.strip() and key.strip() != "your_groq_api_key_here":
         return key.strip()
     try:
         import streamlit as st
-        if "GEMINI_API_KEY" in st.secrets:
-            val = str(st.secrets["GEMINI_API_KEY"]).strip()
-            if val and val != "your_gemini_api_key_here":
+        if "GROQ_API_KEY" in st.secrets:
+            val = str(st.secrets["GROQ_API_KEY"]).strip()
+            if val and val != "your_groq_api_key_here":
                 return val
     except Exception:
         pass
     return None
 
 
-def get_client() -> genai.Client:
-    api_key = get_api_key()
+def get_client() -> Groq:
+    api_key = get_groq_api_key()
     if not api_key:
-        raise ValueError("GEMINI_API_KEY is missing.")
-    return genai.Client(
-        api_key=api_key,
-        http_options=types.HttpOptions(api_version="v1beta"),
-    )
+        raise ValueError("GROQ_API_KEY is missing.")
+    return Groq(api_key=api_key)
 
 
 def wants_hindi(user_text: str) -> bool:
@@ -89,7 +87,7 @@ def detect_intent(user_text: str) -> str:
 
 
 def generate_incident_steps(incident_text: str, hindi: bool = False) -> str:
-    """Generates AI step-by-step incident response, falling back cleanly to offline SOS guide."""
+    """Generates step-by-step SOS guidance using Llama on Groq, with offline fallback."""
     try:
         client = get_client()
         lang_prompt = (
@@ -109,16 +107,16 @@ def generate_incident_steps(incident_text: str, hindi: bool = False) -> str:
         4. One short tip to prevent this in the future.
         """
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_INSTRUCTION,
-                max_output_tokens=8192,
-                temperature=0.35,
-            ),
+        chat_completion = client.chat.completions.create(
+            model=LLAMA_MODEL,
+            messages=[
+                {"role": "system", "content": SYSTEM_INSTRUCTION},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=2048,
+            temperature=0.35,
         )
-        text = (response.text or "").strip()
+        text = (chat_completion.choices[0].message.content or "").strip()
         if text:
             return text
     except Exception:
@@ -128,25 +126,26 @@ def generate_incident_steps(incident_text: str, hindi: bool = False) -> str:
 
 
 def ask_gemini(history: list[dict], new_message: str) -> str:
-    """Sends conversation to Gemini and automatically falls back to offline smart replies if needed."""
+    """Sends full chat thread to Llama on Groq and falls back to offline smart replies if needed."""
     try:
         client = get_client()
-        contents = []
-        for msg in history:
-            role = "user" if msg.get("role") == "user" else "model"
-            contents.append(types.Content(role=role, parts=[types.Part.from_text(text=msg.get("content", ""))]))
-        contents.append(types.Content(role="user", parts=[types.Part.from_text(text=new_message)]))
+        messages = [{"role": "system", "content": SYSTEM_INSTRUCTION}]
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=contents,
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_INSTRUCTION,
-                max_output_tokens=8192,
-                temperature=0.55,
-            ),
+        for msg in history:
+            role = "user" if msg.get("role") == "user" else "assistant"
+            content = msg.get("content", "")
+            if content:
+                messages.append({"role": role, "content": content})
+
+        messages.append({"role": "user", "content": new_message})
+
+        chat_completion = client.chat.completions.create(
+            model=LLAMA_MODEL,
+            messages=messages,
+            max_tokens=2048,
+            temperature=0.55,
         )
-        text = (response.text or "").strip()
+        text = (chat_completion.choices[0].message.content or "").strip()
         if text:
             return text
     except Exception:
